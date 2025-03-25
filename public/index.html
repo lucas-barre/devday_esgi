@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PokeFav</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f2f4f8;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    #search-container {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    input[type="text"] {
+      padding: 0.5rem;
+      font-size: 1rem;
+      width: 220px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      border: none;
+      background-color: #ffcb05;
+      color: #2a75bb;
+      border-radius: 5px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    button:hover {
+      background-color: #f2b807;
+    }
+
+    #result {
+      max-width: 500px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 2rem;
+      border-radius: 15px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+
+    #result img {
+      display: block;
+      margin: 0 auto 1rem;
+      max-width: 180px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .types {
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .type {
+      padding: 0.3rem 0.7rem;
+      border-radius: 20px;
+      color: white;
+      font-size: 0.9rem;
+      text-transform: capitalize;
+    }
+
+    .stats {
+      list-style: none;
+      padding: 0;
+      text-align: left;
+      display: inline-block;
+      margin: 0 auto;
+    }
+
+    .stats li {
+      margin-bottom: 4px;
+    }
+
+    .error {
+      color: red;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>Mon pokémon favori </h1>
+
+  <div id="search-container">
+    <input type="text" id="pokemon-input" placeholder="Nom du Pokémon (ex: pikachu)" />
+    <button id="search-btn">Chercher</button>
+  </div>
+
+  <div id="result"></div>
+
+  <script>
+    const input = document.getElementById('pokemon-input');
+    const button = document.getElementById('search-btn');
+    const resultDiv = document.getElementById('result');
+
+    const typeColors = {
+      normal: '#A8A77A',
+      fire: '#EE8130',
+      water: '#6390F0',
+      electric: '#F7D02C',
+      grass: '#7AC74C',
+      ice: '#96D9D6',
+      fighting: '#C22E28',
+      poison: '#A33EA1',
+      ground: '#E2BF65',
+      flying: '#A98FF3',
+      psychic: '#F95587',
+      bug: '#A6B91A',
+      rock: '#B6A136',
+      ghost: '#735797',
+      dragon: '#6F35FC',
+      dark: '#705746',
+      steel: '#B7B7CE',
+      fairy: '#D685AD'
+    };
+
+    button.addEventListener('click', async () => {
+      const name = input.value.trim().toLowerCase();
+      if (!name) return;
+
+      resultDiv.innerHTML = '<p>Chargement...</p>';
+
+      try {
+        const res = await fetch(`https://tyradex.vercel.app/api/v1/pokemon/${name}`);
+        if (!res.ok) throw new Error('Pokémon introuvable');
+
+        const data = await res.json();
+        const { name: nom, sprites, types, stats } = data;
+
+        const typesHTML = types.map(t => {
+          const color = typeColors[t.name.toLowerCase()] || '#777';
+          return `<span class="type" style="background-color: ${color};">${t.name}</span>`;
+        }).join('');
+
+        resultDiv.innerHTML = `
+          <h2>${nom.jp}</h2>
+          <img src="${sprites.regular}" alt="${nom.fr}" />
+          <div class="types">${typesHTML}</div>
+          <p><strong>Statistiques :</strong></p>
+          <ul class="stats">
+            ${Object.entries(stats).map(([k, v]) => `<li>${k} : ${v}</li>`).join('')}
+          </ul>
+        `;
+      } catch (err) {
+        resultDiv.innerHTML = `<p class="error">Erreur : ${err.message}</p>`;
+      }
+    });
+  </script>
+</body>
+</html>
